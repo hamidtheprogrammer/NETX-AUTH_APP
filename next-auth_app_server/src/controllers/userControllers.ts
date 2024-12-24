@@ -8,7 +8,7 @@ const userExists = async (req: Request, res: Response) => {
     const doesUserExist = await db.users.findFirst({ where: { email } });
 
     if (doesUserExist) {
-      res.status(201).json(doesUserExist);
+      res.status(200).json(doesUserExist);
     } else {
       const newUser = await db.users.create({
         data: { email, name },
