@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import userRouter from "./routes/userRoutes";
+import { db } from "./database/dbConfig";
 
 dotenv.config();
 
@@ -24,3 +25,16 @@ const port = process.env.PORT || 8000;
 app.listen(port, () => {
   console.log("SERVER UP!!!");
 });
+
+async function test() {
+  try {
+    const result = await db.users.findFirst({
+      where: { email: "test@gmail.com" },
+    });
+    console.log(result);
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+test();
