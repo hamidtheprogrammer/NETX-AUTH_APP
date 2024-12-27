@@ -294,5 +294,3 @@ describe("POST /api/register", () => {
     expect(response.body.id).toBeDefined();
   });
 });
-
-const validCredentials = {};
