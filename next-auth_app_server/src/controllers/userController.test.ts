@@ -215,7 +215,7 @@ describe("generate random user", () => {
   });
 });
 
-describe.only("POST /api/user-exists", () => {
+describe("POST /api/user-exists", () => {
   jest.mock("../database/dbConfig", () => ({
     db: { users: { findFirst: jest.fn(), create: jest.fn() } },
   }));
@@ -253,28 +253,22 @@ describe.only("POST /api/user-exists", () => {
 
   it("should create a new user if user does not exist", async () => {
     const user = generateRandomUser();
-    jest.spyOn(db.users, "findFirst").mockResolvedValueOnce(null);
-    jest.spyOn(db.users, "create").mockResolvedValueOnce({ ...user, id: 123 });
+    jest.spyOn(authService, "checkUser").mockResolvedValueOnce(null);
+    jest
+      .spyOn(authService, "createUser")
+      .mockResolvedValueOnce({ ...user, id: 123 });
 
     const response = await supertest(app).post("/api/user-exists").send(user);
+    console.log(response.body);
 
     expect(response.status).toBe(201);
     expect(response.body).toBeDefined();
-    expect(response.body.id).toBeDefined();
+    expect(response.body.id).toBe(123);
   });
 });
 
 describe("POST /api/register", () => {
   it("Should return a 400 with invalid credentials", async () => {
-    jest.spyOn(db.users, "findFirst").mockResolvedValueOnce(null);
-    jest
-      .spyOn(db.users, "create")
-      .mockResolvedValueOnce({
-        id: 123,
-        name: "Test",
-        email: "test@gmacom",
-        password: "Test",
-      });
     const response = await supertest(app).post("/api/register").send({
       name: "Test",
       email: "test@gmacom",
@@ -286,11 +280,17 @@ describe("POST /api/register", () => {
 
   it("should create a new user if credentials are valid", async () => {
     const user = generateRandomUser();
+    jest.spyOn(authService, "checkUser").mockResolvedValueOnce(null);
+    jest.spyOn(authService, "createUser").mockResolvedValueOnce({
+      id: 123,
+      name: "Test",
+      email: "test@gmail.com",
+    });
 
     const response = await supertest(app).post("/api/register").send(user);
 
     expect(response.status).toBe(201);
     expect(response.body).toBeDefined();
-    expect(response.body.id).toBeDefined();
+    expect(response.body.id).toBe(123);
   });
 });
