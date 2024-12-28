@@ -8,17 +8,14 @@ import * as authService from "../services/authService";
 import { db } from "../database/dbConfig";
 import { register, userExists } from "./userControllers";
 
-// jest.mock("bcryptjs");
-// jest.mock("../database/dbConfig", () => ({
-//   db: { users: { findFirst: jest.fn(), create: jest.fn() } },
-// }));
+jest.mock("bcryptjs");
+jest.mock("../database/dbConfig", () => ({
+  db: { users: { findFirst: jest.fn(), create: jest.fn() } },
+}));
 
 //Unit tests
 
 describe("Hash password", () => {
-  beforeAll(() => {
-    jest.mock("bcryptjs");
-  });
   it("should return hashed password", async () => {
     const plain = "plain-text";
 
@@ -34,9 +31,6 @@ describe("Hash password", () => {
 });
 
 describe("Verifying hash", () => {
-  beforeAll(() => {
-    jest.mock("bcryptjs");
-  });
   it("Should return true if passwords match", async () => {
     const plainText = "plain-password";
     const hashedPassword = "hashed-password";
@@ -51,13 +45,6 @@ describe("Verifying hash", () => {
 });
 
 describe("userExists", () => {
-  beforeAll(() => {
-    jest.mock("bcryptjs");
-    jest.mock("../database/dbConfig", () => ({
-      db: { users: { findFirst: jest.fn(), create: jest.fn() } },
-    }));
-  });
-
   it("Should return user if they exist", async () => {
     const user = { id: 1, name: "Test", email: "test@gmail.com" };
 
@@ -90,12 +77,6 @@ describe("userExists", () => {
 });
 
 describe("register", () => {
-  beforeAll(() => {
-    jest.mock("bcryptjs");
-    jest.mock("../database/dbConfig", () => ({
-      db: { users: { findFirst: jest.fn(), create: jest.fn() } },
-    }));
-  });
   it("should return 400 if email already exists", async () => {
     const existingUser = { id: 1, name: "Test", email: "test@gmail.com" };
 
@@ -157,11 +138,6 @@ describe("Sign in", () => {
 //Integrated tests
 
 describe("Check user", () => {
-  beforeAll(() => {
-    jest.mock("../database/dbConfig", () => ({
-      db: { users: { findFirst: jest.fn(), create: jest.fn() } },
-    }));
-  });
   it("should return a userId, name, and email", async () => {
     const payload = "test@gmail.com";
 
@@ -181,11 +157,6 @@ describe("Check user", () => {
 });
 
 describe("Create user", () => {
-  beforeAll(() => {
-    jest.mock("../database/dbConfig", () => ({
-      db: { users: { findFirst: jest.fn(), create: jest.fn() } },
-    }));
-  });
   it("should create a new user with password", async () => {
     const expectedResult = {
       id: 1,
@@ -258,6 +229,12 @@ describe.only("POST /api/user-exists", () => {
   });
 
   it("should return true for existing user", async () => {
+    jest.spyOn(db.users, "findFirst").mockResolvedValueOnce({
+      id: 123,
+      name: "Test",
+      email: "test@gmail.com",
+      password: "Test123",
+    });
     const response = await supertest(app)
       .post("/api/user-exists")
       .send({ name: "Test", email: "test@gmail.com" });
@@ -289,6 +266,15 @@ describe.only("POST /api/user-exists", () => {
 
 describe("POST /api/register", () => {
   it("Should return a 400 with invalid credentials", async () => {
+    jest.spyOn(db.users, "findFirst").mockResolvedValueOnce(null);
+    jest
+      .spyOn(db.users, "create")
+      .mockResolvedValueOnce({
+        id: 123,
+        name: "Test",
+        email: "test@gmacom",
+        password: "Test",
+      });
     const response = await supertest(app).post("/api/register").send({
       name: "Test",
       email: "test@gmacom",
